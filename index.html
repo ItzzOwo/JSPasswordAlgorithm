@@ -69,6 +69,10 @@
         .generate-btn-wrapper {
             width: 100%;
         }
+		
+		.save-button {
+			margin-top: 14px;
+		}
 
         button {
             width: 107.5%;
@@ -92,52 +96,73 @@
     </style>
 </head>
 <body>
-    <div class="container">
+
+	<div class="container">
         <h1 class="center-text">Password Generator</h1>
         <input type="password" id="masterPassword" placeholder="Master Password" required>
         <input type="text" id="website" placeholder="Website" required>
         <button onclick="generatePassword()">Generate Password</button>
+		<button onclick="savePassword()" class="save-button">Save</button>
         <p id="generatedPassword"></p>
     </div>
 
+	
     <script>
-        function generatePassword() {
-            const masterPassword = document.getElementById("masterPassword").value;
-            const website = document.getElementById("website").value;
+		 function savePassword() {
+				const savedWebsite = document.getElementById("website").value;
+				const savedPassword = document.getElementById("generatedPassword").textContent;
 
-            function customHash(inputStr) {
-                const prime1 = 982451653;
-                const prime2 = 15485863;
-                let hashValue = 0;
+				if (savedWebsite.trim() === "") {
+					alert("Website field must be filled out!");
+					return;
+				}
 
-                for (let i = 0; i < inputStr.length; i++) {
-                    const charCode = inputStr.charCodeAt(i);
-                    hashValue = (hashValue * prime1 + charCode) % prime2;
-                }
+				const saveData = `Website: ${savedWebsite}\nPassword: ${savedPassword}`;
 
-                return hashValue.toString(16);
+				const blob = new Blob([saveData], { type: "text/plain" });
+				const url = URL.createObjectURL(blob);
+				const a = document.createElement("a");
+				a.href = url;
+				a.download = "SavedWebsites.txt";
+				a.click();
+			}
+
+	
+    function generatePassword() {
+        const masterPassword = document.getElementById("masterPassword").value;
+        const website = document.getElementById("website").value;
+
+        function customHash(inputStr) {
+            const prime1 = 982451653;
+            const prime2 = 15485863;
+            let hashValue = 0;
+
+            for (let i = 0; i < inputStr.length; i++) {
+                const charCode = inputStr.charCodeAt(i);
+                hashValue = (hashValue * prime1 + charCode) % prime2;
             }
 
-            const combinedStr = masterPassword + website;
-            const uniqueHash = customHash(combinedStr);
-            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:<>,.?';
-            let generatedPassword = '';
-            const passwordLength = 12 + (uniqueHash.charCodeAt(0) % 5);
-            let usedChars = [];
-
-            for (let i = 0; i < passwordLength; i++) {
-                let charIndex = (uniqueHash.charCodeAt(i % uniqueHash.length) % characters.length);
-
-                while (usedChars.includes(charIndex)) {
-                    charIndex = (charIndex + 1) % characters.length;
-                }
-
-                usedChars.push(charIndex);
-                generatedPassword += characters.charAt(charIndex);
-            }
-
-            document.getElementById("generatedPassword").textContent = `Generated Password: ${generatedPassword}`;
+            return hashValue.toString(16);
         }
-    </script>
+
+        const combinedStr = masterPassword + website;
+        const uniqueHash = customHash(combinedStr);
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+[]{}|;:<>,.?';
+        const specialCharacters = '!@#$%^&*()-_=+[]{}|;:<>,.?';
+        let generatedPassword = '';
+        const passwordLength = 11 + (uniqueHash.charCodeAt(0) % 5); // Reduce the password length by 1
+
+        for (let i = 0; i < passwordLength - 1; i++) {
+            let charIndex = (uniqueHash.charCodeAt(i % uniqueHash.length) % characters.length);
+            generatedPassword += characters.charAt(charIndex);
+        }
+
+        // Add a special character to the end
+        let specialCharIndex = (uniqueHash.charCodeAt((passwordLength - 1) % uniqueHash.length) % specialCharacters.length);
+        generatedPassword += specialCharacters.charAt(specialCharIndex);
+
+        document.getElementById("generatedPassword").textContent = `Generated Password: ${generatedPassword}`;
+    }
+</script>
 </body>
 </html>
